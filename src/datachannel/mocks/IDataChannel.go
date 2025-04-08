@@ -337,3 +337,13 @@ func (_m *IDataChannel) SetWebsocket(_a0 log.T, streamUrl string, tokenValue str
 func (_m *IDataChannel) SetWsChannel(wsChannel communicator.IWebSocketChannel) {
 	_m.Called(wsChannel)
 }
+
+func (_m *IDataChannel) RemoteSideIsClosed() {
+	_m.Called("remoteSideIsClosed")
+}
+
+func (_m *IDataChannel) IsRemoteSideClosed() chan bool {
+	var r0 chan bool
+	r0 <- true
+	return r0
+}

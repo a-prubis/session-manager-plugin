@@ -20,6 +20,7 @@ package shellsession
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -82,5 +83,19 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 		// sleep to limit the rate of data transfer
 		time.Sleep(time.Millisecond)
 	}
-	return
+
+	_ = s.Session.DataChannel.SendFlag(log, message.TerminateSession)
+
+	countdown := 60
+
+	if !<-s.Session.DataChannel.IsRemoteSideClosed() && countdown > 0 {
+		time.Sleep(time.Second)
+		countdown--
+	}
+
+	if err == io.EOF {
+		err = nil
+	}
+
+	return err
 }

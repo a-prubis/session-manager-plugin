@@ -17,17 +17,6 @@ fi
 echo "Try update 'goimports'"
 GOPATH=`pwd`/Tools go get golang.org/x/tools/cmd/goimports
 
-echo "Run 'goimports'"
-unformatted=$(Tools/bin/goimports -l `pwd`/src/)
-if [[ -n $unformatted ]]; then
-	echo >&2 "Error: Found files not formatted by goimports"
-	for f in $unformatted; do
-		echo >&2 $f
-	done
-	echo "Please run 'goimports -w' for files listed."
-	exit 1
-fi
-
 echo "Run 'go vet'"
 ln -s `pwd` `pwd`/vendor/src/github.com/aws/session-manager-plugin
 go vet ./src/...

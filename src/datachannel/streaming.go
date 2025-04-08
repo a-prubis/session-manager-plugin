@@ -71,6 +71,8 @@ type IDataChannel interface {
 	GetStreamDataSequenceNumber() int64
 	GetAgentVersion() string
 	SetAgentVersion(agentVersion string)
+	IsRemoteSideClosed() chan bool
+	RemoteSideIsClosed()
 }
 
 // DataChannel used for communication between the mgs and the cli.
@@ -115,6 +117,8 @@ type DataChannel struct {
 
 	// AgentVersion received during handshake
 	agentVersion string
+
+	isRemoteSideClosed chan bool
 }
 
 type ListMessageBuffer struct {
@@ -190,6 +194,7 @@ func (dataChannel *DataChannel) Initialize(log log.T, clientId string, sessionId
 	dataChannel.isStreamMessageResendTimeout = make(chan bool, 1)
 	dataChannel.sessionType = ""
 	dataChannel.IsAwsCliUpgradeNeeded = isAwsCliUpgradeNeeded
+	dataChannel.isRemoteSideClosed = make(chan bool)
 }
 
 // SetWebsocket function populates websocket channel object
@@ -420,6 +425,7 @@ func (dataChannel *DataChannel) OutputMessageHandler(log log.T, stopHandler Stop
 	case message.AcknowledgeMessage:
 		return dataChannel.HandleAcknowledgeMessage(log, *outputMessage)
 	case message.ChannelClosedMessage:
+		dataChannel.RemoteSideIsClosed()
 		dataChannel.HandleChannelClosedMessage(log, stopHandler, sessionID, *outputMessage)
 	case message.StartPublicationMessage, message.PausePublicationMessage:
 		return nil
@@ -935,4 +941,12 @@ func (dataChannel *DataChannel) GetAgentVersion() string {
 // SetAgentVersion set agent version of the target instance
 func (dataChannel *DataChannel) SetAgentVersion(agentVersion string) {
 	dataChannel.agentVersion = agentVersion
+}
+
+func (dataChannel *DataChannel) IsRemoteSideClosed() chan bool {
+	return dataChannel.isRemoteSideClosed
+}
+
+func (dataChannel *DataChannel) RemoteSideIsClosed() {
+	dataChannel.isRemoteSideClosed <- true
 }
